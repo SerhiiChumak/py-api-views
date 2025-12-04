@@ -1,24 +1,5 @@
 from rest_framework import serializers
-
-from cinema.models import Movie, Genre, Actor, CinemaHall
-
-
-class ActorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Actor
-        fields = "__all__"
-
-
-class GenreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Genre
-        fields = "__all__"
-
-
-class CinemaHallSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CinemaHall
-        fields = "__all__"
+from cinema.models import Movie, Actor, Genre, CinemaHall
 
 
 class MovieSerializer(serializers.Serializer):
@@ -27,21 +8,18 @@ class MovieSerializer(serializers.Serializer):
     description = serializers.CharField()
     duration = serializers.IntegerField()
     actors = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Actor.objects.all()
+        many=True, queryset=Actor.objects.all()
     )
     genres = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Genre.objects.all()
+        many=True, queryset=Genre.objects.all()
     )
 
     def create(self, validated_data):
-        actors_data = validated_data.pop("actors", [])
-        genres_data = validated_data.pop("genres", [])
+        actors = validated_data.pop("actors", [])
+        genres = validated_data.pop("genres", [])
         movie = Movie.objects.create(**validated_data)
-        movie.actors.add(*actors_data)
-        movie.genres.add(*genres_data)
-
+        movie.actors.add(*actors)
+        movie.genres.add(*genres)
         return movie
 
     def update(self, instance, validated_data):
@@ -53,4 +31,30 @@ class MovieSerializer(serializers.Serializer):
 
         instance.save()
 
+        if "actors" in validated_data:
+            actors = validated_data["actors"]
+            instance.actors.set(actors)
+
+        if "genres" in validated_data:
+            genres = validated_data["genres"]
+            instance.genres.set(genres)
+
         return instance
+
+
+class ActorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Actor
+        fields = ["id", "first_name", "last_name"]
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = ["id", "name"]
+
+
+class CinemaHallSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CinemaHall
+        fields = ["id", "name", "rows", "seats_in_row"]
