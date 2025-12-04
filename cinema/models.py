@@ -10,7 +10,7 @@ class Actor(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharField(unique=True)
+    name = models.CharField(unique=True, max_length=65)
 
     def __str__(self):
         return f"{self.name}"
